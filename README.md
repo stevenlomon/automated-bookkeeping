@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Automated Bookkeeping Assistant
 
-## Getting Started
+Automates supplier invoice processing for Visma eAccounting. Drop a PDF invoice, get a proposed voucher with the right BAS accounts, approve it into the general ledger.  
+Built using Claude Code with me Steven as the human-in-the-loop having at least done the first manual OAuth flow haha
 
-First, run the development server:
+## How it works
+
+1. Upload a PDF invoice (Swedish or English)
+2. Text is extracted via `pdf-parse`, then structured by Claude into supplier name, date, amounts, and VAT
+3. The matching engine looks up historical vouchers from Visma to find the correct expense account for that supplier
+4. A balanced double-entry voucher draft is proposed for review
+5. On approval, the voucher is posted to Visma eAccounting
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.local.example .env.local
+# Fill in the values, then:
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|---|---|
+| `VISMA_CLIENT_ID` | OAuth2 client ID from Visma developer portal |
+| `VISMA_CLIENT_SECRET` | OAuth2 client secret |
+| `VISMA_REDIRECT_URI` | Must match what's registered with Visma |
+| `ANTHROPIC_API_KEY` | For invoice text extraction via Claude |
+| `APP_PASSWORD` | Shared password for the login gate |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+```
+src/
+  lib/
+    visma/
+      auth.ts       Token management (OAuth2, auto-refresh)
+      client.ts     Visma API client (vouchers, drafts, convert)
+      config.ts     API endpoints and scopes
+      types.ts      Shared TypeScript interfaces
+    parser/
+      index.ts      PDF text extraction
+      extract.ts    Claude-powered field extraction
+      types.ts      InvoiceData interface
+    matcher/
+      index.ts      Supplier-to-account mapping from historical vouchers
+  app/
+    page.tsx        Review UI (upload, preview, approve)
+    proxy.ts        Password gate
+    api/
+      auth/visma/   OAuth2 flow (initiate, callback, status)
+      invoices/     Process and approve endpoints
+      parse/        Standalone PDF parsing endpoint
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Tech stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 (App Router, TypeScript)
+- Tailwind CSS
+- Visma eAccounting API (OAuth2)
+- Anthropic Claude API (invoice extraction)
+- pdf-parse (PDF text extraction)

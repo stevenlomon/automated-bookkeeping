@@ -10,6 +10,11 @@ export interface SupplierMatch {
   count: number;
 }
 
+export interface MatchResult {
+  expenseAccount: number;
+  confidence: "exact" | "partial" | "default";
+}
+
 export type MappingIndex = Map<string, SupplierMatch>;
 
 function normalize(text: string): string {
@@ -60,19 +65,19 @@ export function buildMappingIndex(vouchers: Voucher[]): MappingIndex {
 export function findExpenseAccount(
   supplierName: string,
   index: MappingIndex,
-): number {
+): MatchResult {
   const needle = normalize(supplierName);
 
   const exact = index.get(needle);
-  if (exact) return exact.expenseAccount;
+  if (exact) return { expenseAccount: exact.expenseAccount, confidence: "exact" };
 
   for (const [key, { expenseAccount }] of index) {
     if (key.includes(needle) || needle.includes(key)) {
-      return expenseAccount;
+      return { expenseAccount, confidence: "partial" };
     }
   }
 
-  return DEFAULT_EXPENSE_ACCOUNT;
+  return { expenseAccount: DEFAULT_EXPENSE_ACCOUNT, confidence: "default" };
 }
 
 function determineVatAccount(

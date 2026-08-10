@@ -21,13 +21,29 @@ function normalize(text: string): string {
   return text.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
+const SUPPLIER_INVOICE_TYPE = 12;
+
+function extractSupplierName(voucherText: string): string | null {
+  const match = voucherText.match(
+    /^Leverantörsfaktura från \d+\s+(.+?)(?:,\s*\S+)?$/,
+  );
+  if (match) return normalize(match[1]);
+
+  if (voucherText.includes(" - ")) {
+    return normalize(voucherText.split(" - ")[0]);
+  }
+
+  return null;
+}
+
 export function buildMappingIndex(vouchers: Voucher[]): MappingIndex {
   const counts = new Map<string, Map<number, number>>();
 
   for (const voucher of vouchers) {
     if (!voucher.VoucherText) continue;
+    if (voucher.VoucherType !== SUPPLIER_INVOICE_TYPE) continue;
 
-    const name = normalize(voucher.VoucherText.split("-")[0]);
+    const name = extractSupplierName(voucher.VoucherText);
     if (!name) continue;
 
     for (const row of voucher.Rows) {

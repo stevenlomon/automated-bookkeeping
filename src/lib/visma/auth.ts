@@ -2,6 +2,10 @@ import { promises as fs } from "fs";
 import path from "path";
 import { VISMA_CONFIG } from "./config";
 
+// I wanna properly unpack and dissect this Claude Code generated code once me and my brother have a working prototype. For now all I need
+// to know is that `access_token` and `refresh_token` that I got when going through the OAuth flow manually, along with an `expires_in` are
+// dynamic variables rather than static - they're runtime tokens - generated with the help of the three static variables stored in .evn.local
+
 interface StoredTokens {
   access_token: string;
   refresh_token: string;

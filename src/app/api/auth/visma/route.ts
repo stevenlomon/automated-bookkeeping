@@ -20,6 +20,6 @@ export async function GET() {
   const scope = encodeURIComponent(VISMA_CONFIG.scopes);
 
   return NextResponse.redirect(
-    `${VISMA_CONFIG.authorizeUrl}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`,
+    `${VISMA_CONFIG.authorizeUrl}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}&prompt=select_account&acr_values=service:44643EB1-3F76-4C1C-A672-402AE8085934`,
   );
 }

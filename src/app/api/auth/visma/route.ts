@@ -15,15 +15,11 @@ export async function GET() {
     path: "/",
   });
 
-  const params = new URLSearchParams({
-    response_type: "code",
-    client_id: process.env.VISMA_CLIENT_ID!,
-    redirect_uri: process.env.VISMA_REDIRECT_URI!,
-    scope: VISMA_CONFIG.scopes,
-    state,
-  });
+  const clientId = encodeURIComponent(process.env.VISMA_CLIENT_ID!);
+  const redirectUri = encodeURIComponent(process.env.VISMA_REDIRECT_URI!);
+  const scope = encodeURIComponent(VISMA_CONFIG.scopes);
 
   return NextResponse.redirect(
-    `${VISMA_CONFIG.authorizeUrl}?${params.toString()}`,
+    `${VISMA_CONFIG.authorizeUrl}?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`,
   );
 }
